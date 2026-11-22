@@ -18,5 +18,10 @@ app.use("/api",business);
 app.use("/api",integrations);
 app.use((req,res)=>res.status(404).json({message:"API route not found"}));
 app.use((err,req,res,next)=>{const status=err.status && err.status>=400 && err.status<600?err.status:500;if(status===500)console.error("API internal error:",err);res.status(status).json({message:status===500?"Internal server error":err.message});});
-const PORT=Number(process.env.PORT)||5000;
-app.listen(PORT,()=>console.log(`MentorLagbe API listening on http://localhost:${PORT}`));
+export default app;
+
+// Vercel imports this Express app as a Function. Keep npm start for local use.
+if (!process.env.VERCEL) {
+  const PORT = Number(process.env.PORT) || 5000;
+  app.listen(PORT, () => console.log(`MentorLagbe API listening on http://localhost:${PORT}`));
+}
