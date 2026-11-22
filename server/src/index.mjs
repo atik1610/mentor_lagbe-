@@ -1,0 +1,22 @@
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import {toNodeHandler} from "better-auth/node";
+import {auth,db} from "./auth.mjs";
+import business from "./business.mjs";
+import integrations,{stripeWebhookHandler} from "./integrations.mjs";
+
+const app=express();app.disable("x-powered-by");
+const origins=(process.env.CLIENT_URL||"http://localhost:3000").split(",").map(v=>v.trim());
+app.use(cors({origin:(origin,cb)=>{if(!origin||origins.includes(origin))cb(null,true);else cb(new Error("Origin not allowed"));},credentials:true}));
+app.post("/api/stripe/webhook",express.raw({type:"application/json",limit:"1mb"}),stripeWebhookHandler());
+app.all("/api/auth/*splat",toNodeHandler(auth));
+app.use(express.json({limit:"9mb"}));
+app.get("/health",(req,res)=>res.json({status:"ok",message:"MentorLagbe API is running"}));
+app.get("/api/db-health",async(req,res)=>{try{await db.command({ping:1});res.json({status:"connected",database:db.databaseName});}catch(error){console.error("Mongo ping:",error.message);res.status(503).json({status:"unavailable",message:"Could not reach database"});}});
+app.use("/api",business);
+app.use("/api",integrations);
+app.use((req,res)=>res.status(404).json({message:"API route not found"}));
+app.use((err,req,res,next)=>{const status=err.status && err.status>=400 && err.status<600?err.status:500;if(status===500)console.error("API internal error:",err);res.status(status).json({message:status===500?"Internal server error":err.message});});
+const PORT=Number(process.env.PORT)||5000;
+app.listen(PORT,()=>console.log(`MentorLagbe API listening on http://localhost:${PORT}`));

@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: mentorlagbe-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: mentorlagbe
+      - key: AUTH_DB_NAME
+        value: mentorlagbe_auth
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: AUTH_CROSS_SITE_COOKIES
+        value: "true"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: IMGBB_API_KEY
+        sync: false
